@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://luciaclaw.com/schemas/message-envelope.json",
+  "title": "MessageEnvelope",
+  "description": "Base message envelope for the Lucia Agent Protocol WebSocket channel",
+  "type": "object",
+  "required": ["id", "type", "timestamp", "payload"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID v4 message identifier"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "handshake.init",
+        "handshake.response",
+        "handshake.complete",
+        "chat.message",
+        "chat.response",
+        "chat.stream.chunk",
+        "chat.stream.end",
+        "tool.call",
+        "tool.result",
+        "tool.confirm.request",
+        "tool.confirm.response",
+        "models.list",
+        "models.response",
+        "encrypted",
+        "error"
+      ],
+      "description": "Message type discriminator"
+    },
+    "timestamp": {
+      "type": "number",
+      "description": "Unix timestamp in milliseconds"
+    },
+    "payload": {
+      "description": "Type-specific payload"
+    }
+  },
+  "additionalProperties": false,
+  "if": {
+    "properties": { "type": { "const": "encrypted" } }
+  },
+  "then": {
+    "properties": {
+      "payload": {
+        "type": "object",
+        "required": ["iv", "ciphertext"],
+        "properties": {
+          "iv": {
+            "type": "string",
+            "description": "Base64-encoded 12-byte AES-GCM initialization vector"
+          },
+          "ciphertext": {
+            "type": "string",
+            "description": "Base64-encoded AES-GCM ciphertext"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

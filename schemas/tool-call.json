@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://luciaclaw.com/schemas/tool-call.json",
+  "title": "Tool Call Messages",
+  "description": "Tool call, result, and confirmation schemas",
+  "definitions": {
+    "toolCallPayload": {
+      "type": "object",
+      "required": ["callId", "name", "arguments"],
+      "properties": {
+        "callId": { "type": "string" },
+        "name": { "type": "string", "minLength": 1 },
+        "arguments": { "type": "object" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    {
+      "title": "ToolCall",
+      "description": "Agent wants to execute a tool",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "tool.call" },
+        "timestamp": { "type": "number" },
+        "payload": { "$ref": "#/definitions/toolCallPayload" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "ToolResult",
+      "description": "Result of a tool call execution",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "tool.result" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["callId", "success"],
+          "properties": {
+            "callId": { "type": "string" },
+            "success": { "type": "boolean" },
+            "result": {},
+            "error": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "ToolConfirmRequest",
+      "description": "Agent requests user confirmation for a tool action",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "tool.confirm.request" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["toolCall", "description", "risk", "timeoutMs"],
+          "properties": {
+            "toolCall": { "$ref": "#/definitions/toolCallPayload" },
+            "description": { "type": "string" },
+            "risk": { "type": "string", "enum": ["low", "medium", "high"] },
+            "timeoutMs": { "type": "number", "minimum": 0 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "ToolConfirmResponse",
+      "description": "User approves or denies a confirmation request",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "tool.confirm.response" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["callId", "approved"],
+          "properties": {
+            "callId": { "type": "string" },
+            "approved": { "type": "boolean" },
+            "note": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

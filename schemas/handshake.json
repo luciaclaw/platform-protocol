@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://luciaclaw.com/schemas/handshake.json",
+  "title": "Handshake Messages",
+  "description": "E2E ECDH handshake message schemas",
+  "oneOf": [
+    {
+      "title": "HandshakeInit",
+      "description": "Client sends ECDH public key to initiate handshake",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "handshake.init" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["clientPublicKey", "protocolVersion"],
+          "properties": {
+            "clientPublicKey": {
+              "type": "string",
+              "description": "ECDH P-256 public key in SPKI format, base64-encoded"
+            },
+            "protocolVersion": {
+              "type": "string",
+              "pattern": "^\\d+\\.\\d+\\.\\d+$"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "HandshakeResponse",
+      "description": "Server responds with public key and attestation",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "handshake.response" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["serverPublicKey", "protocolVersion", "attestation"],
+          "properties": {
+            "serverPublicKey": {
+              "type": "string",
+              "description": "ECDH P-256 public key in SPKI format, base64-encoded"
+            },
+            "protocolVersion": {
+              "type": "string",
+              "pattern": "^\\d+\\.\\d+\\.\\d+$"
+            },
+            "attestation": {
+              "$ref": "https://luciaclaw.com/schemas/attestation.json"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "HandshakeComplete",
+      "description": "Client confirms handshake (sent encrypted)",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "handshake.complete" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["status"],
+          "properties": {
+            "status": { "const": "ok" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}
