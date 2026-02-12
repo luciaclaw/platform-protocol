@@ -3,6 +3,23 @@
   "$id": "https://luciaclaw.com/schemas/chat-message.json",
   "title": "Chat Messages",
   "description": "Chat message schemas for user-agent conversation",
+  "definitions": {
+    "attachmentMimeType": {
+      "type": "string",
+      "enum": ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf", "text/plain"]
+    },
+    "attachment": {
+      "type": "object",
+      "required": ["filename", "mimeType", "data", "size"],
+      "properties": {
+        "filename": { "type": "string", "minLength": 1 },
+        "mimeType": { "$ref": "#/definitions/attachmentMimeType" },
+        "data": { "type": "string", "minLength": 1 },
+        "size": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    }
+  },
   "oneOf": [
     {
       "title": "ChatMessage",
@@ -18,7 +35,13 @@
           "required": ["content"],
           "properties": {
             "content": { "type": "string", "minLength": 1 },
-            "model": { "type": "string" }
+            "model": { "type": "string" },
+            "conversationId": { "type": "string" },
+            "attachments": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/attachment" },
+              "maxItems": 5
+            }
           },
           "additionalProperties": false
         }

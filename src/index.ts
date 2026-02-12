@@ -1,5 +1,5 @@
 /**
- * @luciaclaw/protocol — Lucia Agent Protocol v0.1
+ * @luciaclaw/protocol — Lucia Agent Protocol v0.2
  *
  * Type definitions for E2E encrypted communication between
  * the PWA client and the Agent CVM.
@@ -27,6 +27,8 @@ export { PROTOCOL_VERSION } from './handshake.js';
 // Chat
 export type {
   ChatRole,
+  AttachmentMimeType,
+  Attachment,
   ChatMessage,
   ChatMessagePayload,
   ChatMessageMessage,
@@ -54,6 +56,77 @@ export type {
   ToolConfirmResponsePayload,
   ToolConfirmResponseMessage,
 } from './confirmations.js';
+
+// Credentials
+export type {
+  CredentialInfo,
+  CredentialSetPayload,
+  CredentialSetMessage,
+  CredentialDeletePayload,
+  CredentialDeleteMessage,
+  CredentialListPayload,
+  CredentialListMessage,
+  CredentialResponsePayload,
+  CredentialResponseMessage,
+} from './credentials.js';
+
+// Conversations
+export type {
+  ConversationSummary,
+  ConversationsListPayload,
+  ConversationsListMessage,
+  ConversationsLoadPayload,
+  ConversationsLoadMessage,
+  ConversationsResponsePayload,
+  ConversationsResponseMessage,
+  ConversationsDeletePayload,
+  ConversationsDeleteMessage,
+} from './conversations.js';
+
+// OAuth
+export type {
+  OAuthInitPayload,
+  OAuthInitMessage,
+  OAuthCallbackPayload,
+  OAuthCallbackMessage,
+  OAuthStatusPayload,
+  OAuthStatusMessage,
+} from './oauth.js';
+
+// Push notifications
+export type {
+  PushSubscribePayload,
+  PushSubscribeMessage,
+  PushUnsubscribePayload,
+  PushUnsubscribeMessage,
+} from './push.js';
+
+// Integrations
+export type {
+  IntegrationInfo,
+  IntegrationsListPayload,
+  IntegrationsListMessage,
+  IntegrationsResponsePayload,
+  IntegrationsResponseMessage,
+} from './integrations.js';
+
+// Schedules
+export type {
+  ScheduleStatus,
+  ScheduleInfo,
+  ScheduleCreatePayload,
+  ScheduleCreateMessage,
+  ScheduleUpdatePayload,
+  ScheduleUpdateMessage,
+  ScheduleDeletePayload,
+  ScheduleDeleteMessage,
+  ScheduleListPayload,
+  ScheduleListMessage,
+  ScheduleResponsePayload,
+  ScheduleResponseMessage,
+  ScheduleExecutedPayload,
+  ScheduleExecutedMessage,
+} from './schedules.js';
 
 // Errors
 export type { ErrorPayload, ErrorMessage } from './errors.js';

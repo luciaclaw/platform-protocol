@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://luciaclaw.com/schemas/push.json",
+  "title": "Push Notification Messages",
+  "description": "Push notification subscription schemas",
+  "oneOf": [
+    {
+      "title": "PushSubscribe",
+      "description": "Subscribe to push notifications",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "push.subscribe" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["subscription"],
+          "properties": {
+            "subscription": {
+              "type": "object",
+              "required": ["endpoint", "keys"],
+              "properties": {
+                "endpoint": { "type": "string", "format": "uri" },
+                "expirationTime": { "type": ["number", "null"] },
+                "keys": {
+                  "type": "object",
+                  "required": ["p256dh", "auth"],
+                  "properties": {
+                    "p256dh": { "type": "string", "minLength": 1 },
+                    "auth": { "type": "string", "minLength": 1 }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "PushUnsubscribe",
+      "description": "Unsubscribe from push notifications",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "push.unsubscribe" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["endpoint"],
+          "properties": {
+            "endpoint": { "type": "string", "format": "uri" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

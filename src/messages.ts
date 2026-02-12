@@ -22,6 +22,33 @@ export type MessageType =
   | 'tool.result'
   | 'tool.confirm.request'
   | 'tool.confirm.response'
+  // Credentials
+  | 'credentials.set'
+  | 'credentials.delete'
+  | 'credentials.list'
+  | 'credentials.response'
+  // Conversations
+  | 'conversations.list'
+  | 'conversations.load'
+  | 'conversations.response'
+  | 'conversations.delete'
+  // OAuth
+  | 'oauth.init'
+  | 'oauth.callback'
+  | 'oauth.status'
+  // Push notifications
+  | 'push.subscribe'
+  | 'push.unsubscribe'
+  // Integrations
+  | 'integrations.list'
+  | 'integrations.response'
+  // Schedules
+  | 'schedule.create'
+  | 'schedule.update'
+  | 'schedule.delete'
+  | 'schedule.list'
+  | 'schedule.response'
+  | 'schedule.executed'
   // Models
   | 'models.list'
   | 'models.response'

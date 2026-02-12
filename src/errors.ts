@@ -30,6 +30,10 @@ export enum ErrorCode {
   INFERENCE_ERROR = 4000,
   /** Rate limit exceeded */
   RATE_LIMITED = 5000,
+  /** Schedule operation failed */
+  SCHEDULE_ERROR = 6000,
+  /** Schedule not found */
+  SCHEDULE_NOT_FOUND = 6001,
 }
 
 /** Error message payload */

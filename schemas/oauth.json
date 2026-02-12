@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://luciaclaw.com/schemas/oauth.json",
+  "title": "OAuth Messages",
+  "description": "OAuth flow schemas for third-party service authentication",
+  "oneOf": [
+    {
+      "title": "OAuthInit",
+      "description": "Initiate OAuth flow",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "oauth.init" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["service", "scopes"],
+          "properties": {
+            "service": { "type": "string", "minLength": 1 },
+            "scopes": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "OAuthCallback",
+      "description": "OAuth flow completion notification",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "oauth.callback" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["service", "success"],
+          "properties": {
+            "service": { "type": "string", "minLength": 1 },
+            "success": { "type": "boolean" },
+            "error": { "type": "string" },
+            "grantedScopes": { "type": "array", "items": { "type": "string" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "OAuthStatus",
+      "description": "OAuth authentication status",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "oauth.status" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["service", "authenticated"],
+          "properties": {
+            "service": { "type": "string", "minLength": 1 },
+            "authenticated": { "type": "boolean" },
+            "authUrl": { "type": "string", "format": "uri" },
+            "scopes": { "type": "array", "items": { "type": "string" } },
+            "expiresAt": { "type": "number" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

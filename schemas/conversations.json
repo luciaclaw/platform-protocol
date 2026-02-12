@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://luciaclaw.com/schemas/conversations.json",
+  "title": "Conversation Messages",
+  "description": "Conversation management schemas for persistent memory",
+  "definitions": {
+    "conversationSummary": {
+      "type": "object",
+      "required": ["id", "title", "messageCount", "createdAt", "updatedAt"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string" },
+        "messageCount": { "type": "integer", "minimum": 0 },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    {
+      "title": "ConversationsList",
+      "description": "Request list of conversations",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "conversations.list" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "limit": { "type": "integer", "minimum": 1 },
+            "offset": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "ConversationsLoad",
+      "description": "Load messages for a conversation",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "conversations.load" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["conversationId"],
+          "properties": {
+            "conversationId": { "type": "string", "minLength": 1 },
+            "limit": { "type": "integer", "minimum": 1 },
+            "offset": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "ConversationsResponse",
+      "description": "Response with conversation data",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "conversations.response" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "conversations": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/conversationSummary" }
+            },
+            "messages": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["messageId", "role", "content", "timestamp"],
+                "properties": {
+                  "messageId": { "type": "string" },
+                  "role": { "type": "string", "enum": ["user", "assistant", "system"] },
+                  "content": { "type": "string" },
+                  "toolCalls": { "type": "array" },
+                  "timestamp": { "type": "number" }
+                },
+                "additionalProperties": false
+              }
+            },
+            "conversationId": { "type": "string" },
+            "totalMessages": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "ConversationsDelete",
+      "description": "Delete a conversation",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "conversations.delete" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["conversationId"],
+          "properties": {
+            "conversationId": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

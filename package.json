@@ -1,7 +1,7 @@
 {
   "name": "@luciaclaw/protocol",
-  "version": "0.1.0",
-  "description": "Lucia Agent Protocol v0.1 — message types, schemas, and E2E handshake spec",
+  "version": "0.2.0",
+  "description": "Lucia Agent Protocol v0.2 — message types, schemas, and E2E handshake spec",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
