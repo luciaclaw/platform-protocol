@@ -52,6 +52,11 @@ export type MessageType =
   // Models
   | 'models.list'
   | 'models.response'
+  // Persistent memory
+  | 'memory.list'
+  | 'memory.search'
+  | 'memory.delete'
+  | 'memory.response'
   // Encrypted wrapper
   | 'encrypted'
   // Errors

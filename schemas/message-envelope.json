@@ -48,6 +48,10 @@
         "schedule.executed",
         "models.list",
         "models.response",
+        "memory.list",
+        "memory.search",
+        "memory.delete",
+        "memory.response",
         "encrypted",
         "error"
       ],

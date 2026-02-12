@@ -128,6 +128,20 @@ export type {
   ScheduleExecutedMessage,
 } from './schedules.js';
 
+// Persistent memory
+export type {
+  MemoryCategory,
+  MemoryEntry,
+  MemoryListPayload,
+  MemoryListMessage,
+  MemorySearchPayload,
+  MemorySearchMessage,
+  MemoryDeletePayload,
+  MemoryDeleteMessage,
+  MemoryResponsePayload,
+  MemoryResponseMessage,
+} from './persistent-memory.js';
+
 // Errors
 export type { ErrorPayload, ErrorMessage } from './errors.js';
 export { ErrorCode } from './errors.js';

@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://luciaclaw.com/schemas/persistent-memory.json",
+  "title": "Persistent Memory Messages",
+  "description": "Memory management schemas for cross-session persistent memory",
+  "definitions": {
+    "memoryCategory": {
+      "type": "string",
+      "enum": ["fact", "preference", "event", "decision", "relationship", "general"]
+    },
+    "memoryEntry": {
+      "type": "object",
+      "required": ["id", "content", "category", "createdAt", "accessCount"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "content": { "type": "string", "minLength": 1 },
+        "category": { "$ref": "#/definitions/memoryCategory" },
+        "conversationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "lastAccessedAt": { "type": ["number", "null"] },
+        "accessCount": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    {
+      "title": "MemoryList",
+      "description": "List memories with optional category filter and pagination",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "memory.list" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "category": { "$ref": "#/definitions/memoryCategory" },
+            "limit": { "type": "number", "minimum": 1 },
+            "offset": { "type": "number", "minimum": 0 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "MemorySearch",
+      "description": "Search memories by text query",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "memory.search" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["query"],
+          "properties": {
+            "query": { "type": "string", "minLength": 1 },
+            "category": { "$ref": "#/definitions/memoryCategory" },
+            "limit": { "type": "number", "minimum": 1 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "MemoryDelete",
+      "description": "Delete a memory entry",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "memory.delete" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["memoryId"],
+          "properties": {
+            "memoryId": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "MemoryResponse",
+      "description": "Response containing memory entries",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "memory.response" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["memories"],
+          "properties": {
+            "memories": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/memoryEntry" }
+            },
+            "total": { "type": "number", "minimum": 0 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

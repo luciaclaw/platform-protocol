@@ -24,6 +24,7 @@ const oauthSchema = loadSchema('oauth.json');
 const pushSchema = loadSchema('push.json');
 const integrationsSchema = loadSchema('integrations.json');
 const schedulesSchema = loadSchema('schedules.json');
+const persistentMemorySchema = loadSchema('persistent-memory.json');
 
 ajv.addSchema(toolCallSchema);
 ajv.addSchema(credentialsSchema);
@@ -32,6 +33,7 @@ ajv.addSchema(oauthSchema);
 ajv.addSchema(pushSchema);
 ajv.addSchema(integrationsSchema);
 ajv.addSchema(schedulesSchema);
+ajv.addSchema(persistentMemorySchema);
 
 const validateEnvelope = ajv.compile(envelopeSchema);
 
@@ -1186,5 +1188,140 @@ describe('Schedules schema', () => {
       payload: { status: 'invalid' },
     };
     expect(validateSchedules(msg)).toBe(false);
+  });
+});
+
+describe('Persistent memory schema', () => {
+  const validateMemory = ajv.compile(persistentMemorySchema);
+
+  it('validates memory message types in envelope', () => {
+    for (const type of ['memory.list', 'memory.search', 'memory.delete', 'memory.response']) {
+      const msg = { id: uuid(), type, timestamp: Date.now(), payload: {} };
+      expect(validateEnvelope(msg)).toBe(true);
+    }
+  });
+
+  it('validates memory.list with no filters', () => {
+    const msg = {
+      id: uuid(),
+      type: 'memory.list',
+      timestamp: Date.now(),
+      payload: {},
+    };
+    expect(validateMemory(msg)).toBe(true);
+  });
+
+  it('validates memory.list with category filter', () => {
+    const msg = {
+      id: uuid(),
+      type: 'memory.list',
+      timestamp: Date.now(),
+      payload: { category: 'fact', limit: 20, offset: 0 },
+    };
+    expect(validateMemory(msg)).toBe(true);
+  });
+
+  it('validates memory.search with query', () => {
+    const msg = {
+      id: uuid(),
+      type: 'memory.search',
+      timestamp: Date.now(),
+      payload: { query: 'project deadline', limit: 10 },
+    };
+    expect(validateMemory(msg)).toBe(true);
+  });
+
+  it('validates memory.search with category filter', () => {
+    const msg = {
+      id: uuid(),
+      type: 'memory.search',
+      timestamp: Date.now(),
+      payload: { query: 'meeting', category: 'event' },
+    };
+    expect(validateMemory(msg)).toBe(true);
+  });
+
+  it('validates memory.delete with memoryId', () => {
+    const msg = {
+      id: uuid(),
+      type: 'memory.delete',
+      timestamp: Date.now(),
+      payload: { memoryId: 'mem_001' },
+    };
+    expect(validateMemory(msg)).toBe(true);
+  });
+
+  it('validates memory.response with memories array', () => {
+    const msg = {
+      id: uuid(),
+      type: 'memory.response',
+      timestamp: Date.now(),
+      payload: {
+        memories: [
+          {
+            id: 'mem_001',
+            content: "User's name is Alex",
+            category: 'fact',
+            conversationId: 'conv_001',
+            createdAt: Date.now() - 86400000,
+            lastAccessedAt: Date.now(),
+            accessCount: 5,
+          },
+          {
+            id: 'mem_002',
+            content: 'Prefers concise replies',
+            category: 'preference',
+            createdAt: Date.now(),
+            lastAccessedAt: null,
+            accessCount: 0,
+          },
+        ],
+        total: 2,
+      },
+    };
+    expect(validateMemory(msg)).toBe(true);
+  });
+
+  it('validates all MemoryCategory values', () => {
+    const categories = ['fact', 'preference', 'event', 'decision', 'relationship', 'general'];
+    for (const category of categories) {
+      const msg = {
+        id: uuid(),
+        type: 'memory.list',
+        timestamp: Date.now(),
+        payload: { category },
+      };
+      expect(validateMemory(msg)).toBe(true);
+    }
+  });
+
+  it('rejects memory.list with invalid category', () => {
+    const msg = {
+      id: uuid(),
+      type: 'memory.list',
+      timestamp: Date.now(),
+      payload: { category: 'invalid' },
+    };
+    expect(validateMemory(msg)).toBe(false);
+  });
+
+  it('rejects memory.search without query', () => {
+    const msg = {
+      id: uuid(),
+      type: 'memory.search',
+      timestamp: Date.now(),
+      payload: { category: 'fact' },
+    };
+    expect(validateMemory(msg)).toBe(false);
+  });
+
+  it('rejects memory.delete without memoryId', () => {
+    const msg = {
+      id: uuid(),
+      type: 'memory.delete',
+      timestamp: Date.now(),
+      payload: {},
+    };
+    expect(validateMemory(msg)).toBe(false);
   });
 });
