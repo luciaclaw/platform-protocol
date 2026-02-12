@@ -18,7 +18,8 @@
           "required": ["service", "scopes"],
           "properties": {
             "service": { "type": "string", "minLength": 1 },
-            "scopes": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+            "scopes": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+            "account": { "type": "string", "minLength": 1 }
           },
           "additionalProperties": false
         }

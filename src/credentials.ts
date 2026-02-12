@@ -12,6 +12,8 @@ import type { MessageEnvelope } from './messages.js';
 export interface CredentialInfo {
   /** Service identifier (e.g., 'gmail', 'slack', 'openai') */
   service: string;
+  /** Account identifier for multi-account support (e.g., 'personal', 'work') */
+  account?: string;
   /** Human-readable label (e.g., 'Work Gmail', 'Personal Slack') */
   label: string;
   /** Credential type */
@@ -30,6 +32,8 @@ export interface CredentialInfo {
 export interface CredentialSetPayload {
   /** Service identifier */
   service: string;
+  /** Account identifier for multi-account support */
+  account?: string;
   /** Human-readable label */
   label: string;
   /** Credential type */
@@ -48,6 +52,8 @@ export type CredentialSetMessage = MessageEnvelope<CredentialSetPayload> & {
 export interface CredentialDeletePayload {
   /** Service identifier of the credential to delete */
   service: string;
+  /** Account identifier (omit to delete the default account) */
+  account?: string;
 }
 
 export type CredentialDeleteMessage =
@@ -59,6 +65,8 @@ export type CredentialDeleteMessage =
 export interface CredentialListPayload {
   /** Optional filter by service */
   service?: string;
+  /** Optional filter by account */
+  account?: string;
 }
 
 export type CredentialListMessage = MessageEnvelope<CredentialListPayload> & {

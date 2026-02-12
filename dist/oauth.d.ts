@@ -12,6 +12,8 @@ export interface OAuthInitPayload {
     service: string;
     /** Requested OAuth scopes */
     scopes: string[];
+    /** Account identifier for multi-account support (e.g., 'personal', 'work') */
+    account?: string;
 }
 export type OAuthInitMessage = MessageEnvelope<OAuthInitPayload> & {
     type: 'oauth.init';

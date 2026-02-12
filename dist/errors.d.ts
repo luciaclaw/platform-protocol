@@ -31,7 +31,9 @@ export declare enum ErrorCode {
     /** Schedule operation failed */
     SCHEDULE_ERROR = 6000,
     /** Schedule not found */
-    SCHEDULE_NOT_FOUND = 6001
+    SCHEDULE_NOT_FOUND = 6001,
+    /** Credential not found */
+    CREDENTIAL_NOT_FOUND = 7000
 }
 /** Error message payload */
 export interface ErrorPayload {

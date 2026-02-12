@@ -32,5 +32,7 @@ export var ErrorCode;
     ErrorCode[ErrorCode["SCHEDULE_ERROR"] = 6000] = "SCHEDULE_ERROR";
     /** Schedule not found */
     ErrorCode[ErrorCode["SCHEDULE_NOT_FOUND"] = 6001] = "SCHEDULE_NOT_FOUND";
+    /** Credential not found */
+    ErrorCode[ErrorCode["CREDENTIAL_NOT_FOUND"] = 7000] = "CREDENTIAL_NOT_FOUND";
 })(ErrorCode || (ErrorCode = {}));
 //# sourceMappingURL=errors.js.map

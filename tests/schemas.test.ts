@@ -338,6 +338,79 @@ describe('Credentials schema', () => {
     };
     expect(validateCredentials(msg)).toBe(false);
   });
+
+  it('validates credentials.set with account field', () => {
+    const msg = {
+      id: uuid(),
+      type: 'credentials.set',
+      timestamp: Date.now(),
+      payload: {
+        service: 'google',
+        account: 'work',
+        label: 'Work Google',
+        credentialType: 'oauth',
+        value: 'ya29.token',
+        scopes: ['gmail.send'],
+      },
+    };
+    expect(validateCredentials(msg)).toBe(true);
+  });
+
+  it('validates credentials.set without account (backwards compat)', () => {
+    const msg = {
+      id: uuid(),
+      type: 'credentials.set',
+      timestamp: Date.now(),
+      payload: {
+        service: 'slack',
+        label: 'Slack',
+        credentialType: 'oauth',
+        value: 'xoxb-token',
+      },
+    };
+    expect(validateCredentials(msg)).toBe(true);
+  });
+
+  it('validates credentials.delete with account', () => {
+    const msg = {
+      id: uuid(),
+      type: 'credentials.delete',
+      timestamp: Date.now(),
+      payload: { service: 'google', account: 'personal' },
+    };
+    expect(validateCredentials(msg)).toBe(true);
+  });
+
+  it('validates credentials.response with account in credentialInfo', () => {
+    const msg = {
+      id: uuid(),
+      type: 'credentials.response',
+      timestamp: Date.now(),
+      payload: {
+        credentials: [
+          {
+            service: 'google',
+            account: 'work',
+            label: 'Work Google',
+            credentialType: 'oauth',
+            connected: true,
+            createdAt: Date.now(),
+          },
+        ],
+      },
+    };
+    expect(validateCredentials(msg)).toBe(true);
+  });
+
+  it('validates credentials.list with account filter', () => {
+    const msg = {
+      id: uuid(),
+      type: 'credentials.list',
+      timestamp: Date.now(),
+      payload: { service: 'google', account: 'work' },
+    };
+    expect(validateCredentials(msg)).toBe(true);
+  });
 });
 
 describe('Conversations schema', () => {
@@ -741,6 +814,11 @@ describe('TypeScript types match schema expectations', () => {
     const { ErrorCode } = await import('../src/errors.js');
     expect(ErrorCode.SCHEDULE_ERROR).toBe(6000);
     expect(ErrorCode.SCHEDULE_NOT_FOUND).toBe(6001);
+  });
+
+  it('ErrorCode includes CREDENTIAL_NOT_FOUND', async () => {
+    const { ErrorCode } = await import('../src/errors.js');
+    expect(ErrorCode.CREDENTIAL_NOT_FOUND).toBe(7000);
   });
 });
 
