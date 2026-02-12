@@ -128,6 +128,36 @@ export type {
   ScheduleExecutedMessage,
 } from './schedules.js';
 
+// Workflows
+export type {
+  WorkflowStatus,
+  WorkflowExecutionStatus,
+  WorkflowStepStatus,
+  WorkflowStepType,
+  WorkflowTrigger,
+  ToolCallStep,
+  LlmInferenceStep,
+  DelayStep,
+  WorkflowStep,
+  WorkflowInfo,
+  WorkflowStepExecutionInfo,
+  WorkflowExecutionInfo,
+  WorkflowCreatePayload,
+  WorkflowCreateMessage,
+  WorkflowUpdatePayload,
+  WorkflowUpdateMessage,
+  WorkflowDeletePayload,
+  WorkflowDeleteMessage,
+  WorkflowListPayload,
+  WorkflowListMessage,
+  WorkflowExecutePayload,
+  WorkflowExecuteMessage,
+  WorkflowResponsePayload,
+  WorkflowResponseMessage,
+  WorkflowStatusPayload,
+  WorkflowStatusMessage,
+} from './workflows.js';
+
 // Persistent memory
 export type {
   MemoryCategory,
@@ -141,6 +171,16 @@ export type {
   MemoryResponsePayload,
   MemoryResponseMessage,
 } from './persistent-memory.js';
+
+// Preferences
+export type {
+  PreferencesSetPayload,
+  PreferencesSetMessage,
+  PreferencesListPayload,
+  PreferencesListMessage,
+  PreferencesResponsePayload,
+  PreferencesResponseMessage,
+} from './preferences.js';
 
 // Errors
 export type { ErrorPayload, ErrorMessage } from './errors.js';

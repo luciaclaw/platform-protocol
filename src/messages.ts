@@ -52,11 +52,23 @@ export type MessageType =
   // Models
   | 'models.list'
   | 'models.response'
+  // Workflows
+  | 'workflow.create'
+  | 'workflow.update'
+  | 'workflow.delete'
+  | 'workflow.list'
+  | 'workflow.execute'
+  | 'workflow.response'
+  | 'workflow.status'
   // Persistent memory
   | 'memory.list'
   | 'memory.search'
   | 'memory.delete'
   | 'memory.response'
+  // Preferences
+  | 'preferences.set'
+  | 'preferences.list'
+  | 'preferences.response'
   // Encrypted wrapper
   | 'encrypted'
   // Errors

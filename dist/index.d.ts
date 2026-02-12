@@ -17,7 +17,9 @@ export type { OAuthInitPayload, OAuthInitMessage, OAuthCallbackPayload, OAuthCal
 export type { PushSubscribePayload, PushSubscribeMessage, PushUnsubscribePayload, PushUnsubscribeMessage, } from './push.js';
 export type { IntegrationInfo, IntegrationsListPayload, IntegrationsListMessage, IntegrationsResponsePayload, IntegrationsResponseMessage, } from './integrations.js';
 export type { ScheduleStatus, ScheduleInfo, ScheduleCreatePayload, ScheduleCreateMessage, ScheduleUpdatePayload, ScheduleUpdateMessage, ScheduleDeletePayload, ScheduleDeleteMessage, ScheduleListPayload, ScheduleListMessage, ScheduleResponsePayload, ScheduleResponseMessage, ScheduleExecutedPayload, ScheduleExecutedMessage, } from './schedules.js';
+export type { WorkflowStatus, WorkflowExecutionStatus, WorkflowStepStatus, WorkflowStepType, WorkflowTrigger, ToolCallStep, LlmInferenceStep, DelayStep, WorkflowStep, WorkflowInfo, WorkflowStepExecutionInfo, WorkflowExecutionInfo, WorkflowCreatePayload, WorkflowCreateMessage, WorkflowUpdatePayload, WorkflowUpdateMessage, WorkflowDeletePayload, WorkflowDeleteMessage, WorkflowListPayload, WorkflowListMessage, WorkflowExecutePayload, WorkflowExecuteMessage, WorkflowResponsePayload, WorkflowResponseMessage, WorkflowStatusPayload, WorkflowStatusMessage, } from './workflows.js';
 export type { MemoryCategory, MemoryEntry, MemoryListPayload, MemoryListMessage, MemorySearchPayload, MemorySearchMessage, MemoryDeletePayload, MemoryDeleteMessage, MemoryResponsePayload, MemoryResponseMessage, } from './persistent-memory.js';
+export type { PreferencesSetPayload, PreferencesSetMessage, PreferencesListPayload, PreferencesListMessage, PreferencesResponsePayload, PreferencesResponseMessage, } from './preferences.js';
 export type { ErrorPayload, ErrorMessage } from './errors.js';
 export { ErrorCode } from './errors.js';
 export type { ModelInfo, ModelsListPayload, ModelsListMessage, ModelsResponsePayload, ModelsResponseMessage, } from './models.js';

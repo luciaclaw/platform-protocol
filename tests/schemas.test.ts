@@ -25,6 +25,7 @@ const pushSchema = loadSchema('push.json');
 const integrationsSchema = loadSchema('integrations.json');
 const schedulesSchema = loadSchema('schedules.json');
 const persistentMemorySchema = loadSchema('persistent-memory.json');
+const workflowsSchema = loadSchema('workflows.json');
 
 ajv.addSchema(toolCallSchema);
 ajv.addSchema(credentialsSchema);
@@ -34,6 +35,7 @@ ajv.addSchema(pushSchema);
 ajv.addSchema(integrationsSchema);
 ajv.addSchema(schedulesSchema);
 ajv.addSchema(persistentMemorySchema);
+ajv.addSchema(workflowsSchema);
 
 const validateEnvelope = ajv.compile(envelopeSchema);
 
@@ -1323,5 +1325,257 @@ describe('Persistent memory schema', () => {
       payload: {},
     };
     expect(validateMemory(msg)).toBe(false);
+  });
+});
+
+describe('Workflows schema', () => {
+  const validateWorkflows = ajv.compile(workflowsSchema);
+
+  it('validates workflow message types in envelope', () => {
+    for (const type of ['workflow.create', 'workflow.update', 'workflow.delete', 'workflow.list', 'workflow.execute', 'workflow.response', 'workflow.status']) {
+      const msg = { id: uuid(), type, timestamp: Date.now(), payload: {} };
+      expect(validateEnvelope(msg)).toBe(true);
+    }
+  });
+
+  it('validates workflow.create with tool_call steps', () => {
+    const msg = {
+      id: uuid(),
+      type: 'workflow.create',
+      timestamp: Date.now(),
+      payload: {
+        name: 'Email digest',
+        description: 'Fetch and summarize recent emails',
+        steps: [
+          {
+            id: 'fetch',
+            name: 'Fetch emails',
+            type: 'tool_call',
+            toolName: 'gmail.search',
+            arguments: { query: 'is:unread' },
+          },
+          {
+            id: 'summarize',
+            name: 'Summarize',
+            type: 'llm_inference',
+            prompt: 'Summarize these emails: {{steps.fetch.output.results}}',
+            dependsOn: ['fetch'],
+          },
+        ],
+      },
+    };
+    expect(validateWorkflows(msg)).toBe(true);
+  });
+
+  it('validates workflow.create with mixed step types', () => {
+    const msg = {
+      id: uuid(),
+      type: 'workflow.create',
+      timestamp: Date.now(),
+      payload: {
+        name: 'Delayed report',
+        description: 'Wait then generate report',
+        steps: [
+          {
+            id: 'wait',
+            name: 'Wait',
+            type: 'delay',
+            durationMs: 5000,
+          },
+          {
+            id: 'report',
+            name: 'Generate report',
+            type: 'llm_inference',
+            prompt: 'Generate a daily report',
+            dependsOn: ['wait'],
+            retryMax: 2,
+            retryBackoffMs: 1000,
+          },
+          {
+            id: 'send',
+            name: 'Send report',
+            type: 'tool_call',
+            toolName: 'gmail.send',
+            arguments: { to: 'boss@company.com', body: '{{steps.report.output}}' },
+            dependsOn: ['report'],
+            condition: 'steps.report.status == completed',
+          },
+        ],
+      },
+    };
+    expect(validateWorkflows(msg)).toBe(true);
+  });
+
+  it('validates workflow.update with partial updates', () => {
+    const msg = {
+      id: uuid(),
+      type: 'workflow.update',
+      timestamp: Date.now(),
+      payload: {
+        workflowId: 'wf_001',
+        name: 'Updated workflow',
+        status: 'archived',
+      },
+    };
+    expect(validateWorkflows(msg)).toBe(true);
+  });
+
+  it('validates workflow.delete with workflowId', () => {
+    const msg = {
+      id: uuid(),
+      type: 'workflow.delete',
+      timestamp: Date.now(),
+      payload: { workflowId: 'wf_001' },
+    };
+    expect(validateWorkflows(msg)).toBe(true);
+  });
+
+  it('validates workflow.list with optional status filter', () => {
+    const msg = {
+      id: uuid(),
+      type: 'workflow.list',
+      timestamp: Date.now(),
+      payload: { status: 'active' },
+    };
+    expect(validateWorkflows(msg)).toBe(true);
+  });
+
+  it('validates workflow.list with empty payload', () => {
+    const msg = {
+      id: uuid(),
+      type: 'workflow.list',
+      timestamp: Date.now(),
+      payload: {},
+    };
+    expect(validateWorkflows(msg)).toBe(true);
+  });
+
+  it('validates workflow.execute with workflowId', () => {
+    const msg = {
+      id: uuid(),
+      type: 'workflow.execute',
+      timestamp: Date.now(),
+      payload: { workflowId: 'wf_001' },
+    };
+    expect(validateWorkflows(msg)).toBe(true);
+  });
+
+  it('validates workflow.execute with variables', () => {
+    const msg = {
+      id: uuid(),
+      type: 'workflow.execute',
+      timestamp: Date.now(),
+      payload: {
+        workflowId: 'wf_001',
+        variables: { recipient: 'user@example.com', topic: 'Q4 results' },
+      },
+    };
+    expect(validateWorkflows(msg)).toBe(true);
+  });
+
+  it('validates workflow.response with workflows array', () => {
+    const msg = {
+      id: uuid(),
+      type: 'workflow.response',
+      timestamp: Date.now(),
+      payload: {
+        workflows: [
+          {
+            id: 'wf_001',
+            name: 'Email digest',
+            description: 'Daily email summary',
+            steps: [
+              { id: 's1', name: 'Fetch', type: 'tool_call', toolName: 'gmail.search', arguments: {} },
+            ],
+            status: 'active',
+            createdAt: Date.now() - 86400000,
+            updatedAt: Date.now(),
+          },
+        ],
+      },
+    };
+    expect(validateWorkflows(msg)).toBe(true);
+  });
+
+  it('validates workflow.response with execution info', () => {
+    const msg = {
+      id: uuid(),
+      type: 'workflow.response',
+      timestamp: Date.now(),
+      payload: {
+        execution: {
+          id: 'exec_001',
+          workflowId: 'wf_001',
+          workflowName: 'Email digest',
+          status: 'running',
+          trigger: 'manual',
+          steps: [
+            { stepId: 's1', name: 'Fetch', type: 'tool_call', status: 'completed', attempts: 1, startedAt: Date.now() - 5000, completedAt: Date.now() - 2000 },
+            { stepId: 's2', name: 'Summarize', type: 'llm_inference', status: 'running', attempts: 1, startedAt: Date.now() - 1000 },
+          ],
+          startedAt: Date.now() - 5000,
+        },
+      },
+    };
+    expect(validateWorkflows(msg)).toBe(true);
+  });
+
+  it('validates workflow.status with step execution details', () => {
+    const msg = {
+      id: uuid(),
+      type: 'workflow.status',
+      timestamp: Date.now(),
+      payload: {
+        execution: {
+          id: 'exec_001',
+          workflowId: 'wf_001',
+          workflowName: 'Email digest',
+          status: 'completed',
+          trigger: 'schedule',
+          steps: [
+            { stepId: 's1', name: 'Fetch', type: 'tool_call', status: 'completed', output: { count: 5 }, attempts: 1, startedAt: Date.now() - 5000, completedAt: Date.now() - 3000 },
+            { stepId: 's2', name: 'Summarize', type: 'llm_inference', status: 'completed', output: 'Summary text', attempts: 1, startedAt: Date.now() - 3000, completedAt: Date.now() - 1000 },
+            { stepId: 's3', name: 'Optional step', type: 'delay', status: 'skipped', attempts: 0 },
+          ],
+          startedAt: Date.now() - 5000,
+          completedAt: Date.now(),
+        },
+      },
+    };
+    expect(validateWorkflows(msg)).toBe(true);
+  });
+
+  it('rejects workflow.create without steps', () => {
+    const msg = {
+      id: uuid(),
+      type: 'workflow.create',
+      timestamp: Date.now(),
+      payload: {
+        name: 'Empty workflow',
+        description: 'No steps',
+        steps: [],
+      },
+    };
+    expect(validateWorkflows(msg)).toBe(false);
+  });
+
+  it('rejects workflow.update without workflowId', () => {
+    const msg = {
+      id: uuid(),
+      type: 'workflow.update',
+      timestamp: Date.now(),
+      payload: { name: 'Updated' },
+    };
+    expect(validateWorkflows(msg)).toBe(false);
+  });
+
+  it('rejects workflow.list with invalid status', () => {
+    const msg = {
+      id: uuid(),
+      type: 'workflow.list',
+      timestamp: Date.now(),
+      payload: { status: 'invalid' },
+    };
+    expect(validateWorkflows(msg)).toBe(false);
   });
 });

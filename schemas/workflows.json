@@ -1,0 +1,303 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://luciaclaw.com/schemas/workflows.json",
+  "title": "Workflow Messages",
+  "description": "Multi-step workflow engine schemas for DAG-based automation",
+  "definitions": {
+    "workflowStatus": {
+      "type": "string",
+      "enum": ["active", "archived"]
+    },
+    "workflowExecutionStatus": {
+      "type": "string",
+      "enum": ["pending", "running", "completed", "failed", "cancelled"]
+    },
+    "workflowStepStatus": {
+      "type": "string",
+      "enum": ["pending", "running", "completed", "failed", "skipped"]
+    },
+    "workflowStepType": {
+      "type": "string",
+      "enum": ["tool_call", "llm_inference", "delay"]
+    },
+    "workflowTrigger": {
+      "type": "string",
+      "enum": ["manual", "schedule", "tool"]
+    },
+    "workflowStepBase": {
+      "type": "object",
+      "required": ["id", "name", "type"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "type": { "$ref": "#/definitions/workflowStepType" },
+        "dependsOn": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "condition": { "type": "string" },
+        "retryMax": { "type": "integer", "minimum": 0 },
+        "retryBackoffMs": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "toolCallStep": {
+      "allOf": [
+        { "$ref": "#/definitions/workflowStepBase" },
+        {
+          "type": "object",
+          "required": ["toolName", "arguments"],
+          "properties": {
+            "type": { "const": "tool_call" },
+            "toolName": { "type": "string", "minLength": 1 },
+            "arguments": { "type": "object" }
+          }
+        }
+      ]
+    },
+    "llmInferenceStep": {
+      "allOf": [
+        { "$ref": "#/definitions/workflowStepBase" },
+        {
+          "type": "object",
+          "required": ["prompt"],
+          "properties": {
+            "type": { "const": "llm_inference" },
+            "prompt": { "type": "string", "minLength": 1 },
+            "model": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
+    },
+    "delayStep": {
+      "allOf": [
+        { "$ref": "#/definitions/workflowStepBase" },
+        {
+          "type": "object",
+          "required": ["durationMs"],
+          "properties": {
+            "type": { "const": "delay" },
+            "durationMs": { "type": "integer", "minimum": 0 }
+          }
+        }
+      ]
+    },
+    "workflowStep": {
+      "oneOf": [
+        { "$ref": "#/definitions/toolCallStep" },
+        { "$ref": "#/definitions/llmInferenceStep" },
+        { "$ref": "#/definitions/delayStep" }
+      ]
+    },
+    "workflowInfo": {
+      "type": "object",
+      "required": ["id", "name", "description", "steps", "status", "createdAt", "updatedAt"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/workflowStep" }
+        },
+        "status": { "$ref": "#/definitions/workflowStatus" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "workflowStepExecutionInfo": {
+      "type": "object",
+      "required": ["stepId", "name", "type", "status", "attempts"],
+      "properties": {
+        "stepId": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "type": { "$ref": "#/definitions/workflowStepType" },
+        "status": { "$ref": "#/definitions/workflowStepStatus" },
+        "output": {},
+        "error": { "type": "string" },
+        "attempts": { "type": "integer", "minimum": 0 },
+        "startedAt": { "type": "number" },
+        "completedAt": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "workflowExecutionInfo": {
+      "type": "object",
+      "required": ["id", "workflowId", "workflowName", "status", "trigger", "steps"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "workflowId": { "type": "string", "minLength": 1 },
+        "workflowName": { "type": "string", "minLength": 1 },
+        "status": { "$ref": "#/definitions/workflowExecutionStatus" },
+        "trigger": { "$ref": "#/definitions/workflowTrigger" },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/workflowStepExecutionInfo" }
+        },
+        "startedAt": { "type": "number" },
+        "completedAt": { "type": "number" },
+        "error": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    {
+      "title": "WorkflowCreate",
+      "description": "Create a new workflow",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "workflow.create" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["name", "description", "steps"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "description": { "type": "string" },
+            "steps": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/workflowStep" },
+              "minItems": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "WorkflowUpdate",
+      "description": "Update an existing workflow",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "workflow.update" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["workflowId"],
+          "properties": {
+            "workflowId": { "type": "string", "minLength": 1 },
+            "name": { "type": "string", "minLength": 1 },
+            "description": { "type": "string" },
+            "steps": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/workflowStep" },
+              "minItems": 1
+            },
+            "status": { "$ref": "#/definitions/workflowStatus" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "WorkflowDelete",
+      "description": "Delete a workflow",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "workflow.delete" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["workflowId"],
+          "properties": {
+            "workflowId": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "WorkflowList",
+      "description": "Request workflow list",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "workflow.list" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "status": { "$ref": "#/definitions/workflowStatus" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "WorkflowExecute",
+      "description": "Execute a workflow",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "workflow.execute" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["workflowId"],
+          "properties": {
+            "workflowId": { "type": "string", "minLength": 1 },
+            "variables": { "type": "object" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "WorkflowResponse",
+      "description": "Workflow operation response",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "workflow.response" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "workflows": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/workflowInfo" }
+            },
+            "execution": { "$ref": "#/definitions/workflowExecutionInfo" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "WorkflowStatus",
+      "description": "Live workflow execution status push",
+      "type": "object",
+      "required": ["id", "type", "timestamp", "payload"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "const": "workflow.status" },
+        "timestamp": { "type": "number" },
+        "payload": {
+          "type": "object",
+          "required": ["execution"],
+          "properties": {
+            "execution": { "$ref": "#/definitions/workflowExecutionInfo" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}
