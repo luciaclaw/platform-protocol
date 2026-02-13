@@ -1,9 +1,19 @@
 /**
  * Scheduled task types for cron-based automation.
  *
- * Schedules fire prompts into the chat pipeline on a cron expression.
- * Results are stored in a dedicated conversation per schedule and
- * delivered via push notification.
+ * Supports three schedule types:
+ * - 'cron': recurring via 5-field cron expression
+ * - 'at': one-shot at a specific time (auto-deletes after run)
+ * - 'interval': recurring at a fixed millisecond interval
+ *
+ * Execution modes:
+ * - 'main': runs in the schedule's dedicated conversation (shared context)
+ * - 'isolated': runs in a fresh conversation each time (no context carry-over)
+ *
+ * Delivery routing:
+ * - 'announce': sends results to a specified channel (telegram, discord, etc.)
+ * - 'silent': logs only, no delivery
+ * - 'none': no delivery (default — results stay in conversation + push notification)
  */
 
 import type { MessageEnvelope } from './messages.js';
@@ -11,20 +21,61 @@ import type { MessageEnvelope } from './messages.js';
 /** Schedule status */
 export type ScheduleStatus = 'active' | 'paused';
 
+/** Schedule type — how the schedule fires */
+export type ScheduleType = 'cron' | 'at' | 'interval';
+
+/** Execution mode — how the prompt runs */
+export type ExecutionMode = 'main' | 'isolated';
+
+/** Delivery mode — where results go */
+export type DeliveryMode = 'announce' | 'silent' | 'none';
+
+/** Delivery configuration for routing cron results to channels */
+export interface DeliveryConfig {
+  /** How to deliver: announce (send to channel), silent (log only), none (default) */
+  mode: DeliveryMode;
+  /** Target channel type (e.g., 'telegram', 'discord', 'slack', 'gmail') */
+  channel?: string;
+  /** Target identifier (chat ID, channel ID, email address, etc.) */
+  target?: string;
+}
+
 /** Full schedule information */
 export interface ScheduleInfo {
   /** Unique schedule ID */
   id: string;
   /** Human-readable schedule name */
   name: string;
-  /** 5-field cron expression (minute hour dom month dow) */
-  cronExpression: string;
+  /** Schedule type: 'cron' (recurring), 'at' (one-shot), 'interval' (fixed interval) */
+  scheduleType: ScheduleType;
+  /** 5-field cron expression (null for 'at' and 'interval' types) */
+  cronExpression: string | null;
   /** IANA timezone (e.g. 'America/New_York') */
   timezone: string;
   /** Prompt to inject into chat pipeline when schedule fires */
   prompt: string;
   /** Whether the schedule is active or paused */
   status: ScheduleStatus;
+  /** Execution mode: 'main' (shared context) or 'isolated' (fresh each time) */
+  executionMode: ExecutionMode;
+  /** Delivery routing configuration (null = default push notification only) */
+  delivery: DeliveryConfig | null;
+  /** LLM model override for this job (null = use global default) */
+  model: string | null;
+  /** Unix timestamp for one-shot 'at' schedules (null for cron/interval) */
+  atTime: number | null;
+  /** Interval in milliseconds for 'interval' schedules (null for cron/at) */
+  intervalMs: number | null;
+  /** Whether to auto-delete after execution (default true for 'at', false otherwise) */
+  deleteAfterRun: boolean;
+  /** Maximum retry attempts on failure (0 = no retry) */
+  maxRetries: number;
+  /** Initial retry backoff in milliseconds (doubles each retry, caps at 60m) */
+  retryBackoffMs: number;
+  /** Current retry attempt count (resets to 0 on success) */
+  retryCount: number;
+  /** Last error message (null if last run succeeded) */
+  lastError: string | null;
   /** Conversation ID for storing schedule execution results */
   conversationId: string | null;
   /** Unix timestamp when the schedule was created */
@@ -41,12 +92,32 @@ export interface ScheduleInfo {
 export interface ScheduleCreatePayload {
   /** Human-readable schedule name */
   name: string;
-  /** 5-field cron expression */
-  cronExpression: string;
+  /** Schedule type (default: 'cron') */
+  scheduleType?: ScheduleType;
+  /** 5-field cron expression (required for 'cron' type) */
+  cronExpression?: string;
   /** IANA timezone */
   timezone: string;
   /** Prompt to run on schedule */
   prompt: string;
+  /** Execution mode (default: 'main') */
+  executionMode?: ExecutionMode;
+  /** Delivery routing configuration */
+  delivery?: DeliveryConfig;
+  /** LLM model override for this job */
+  model?: string;
+  /** Unix timestamp for 'at' type */
+  atTime?: number;
+  /** Relative duration for 'at' type (e.g., '20m', '2h', '1d') — parsed server-side */
+  atDuration?: string;
+  /** Interval in ms for 'interval' type */
+  intervalMs?: number;
+  /** Whether to auto-delete after execution */
+  deleteAfterRun?: boolean;
+  /** Maximum retry attempts on failure (default: 0) */
+  maxRetries?: number;
+  /** Initial retry backoff in ms (default: 30000) */
+  retryBackoffMs?: number;
 }
 
 export type ScheduleCreateMessage =
@@ -68,6 +139,16 @@ export interface ScheduleUpdatePayload {
   prompt?: string;
   /** Updated status (active/paused) */
   status?: ScheduleStatus;
+  /** Updated execution mode */
+  executionMode?: ExecutionMode;
+  /** Updated delivery config (null to clear) */
+  delivery?: DeliveryConfig | null;
+  /** Updated model override (null to clear) */
+  model?: string | null;
+  /** Updated max retries */
+  maxRetries?: number;
+  /** Updated retry backoff */
+  retryBackoffMs?: number;
 }
 
 export type ScheduleUpdateMessage =
@@ -122,6 +203,8 @@ export interface ScheduleExecutedPayload {
   conversationId: string;
   /** Unix timestamp of execution */
   executedAt: number;
+  /** Delivery channel used (if any) */
+  deliveryChannel?: string;
 }
 
 export type ScheduleExecutedMessage =

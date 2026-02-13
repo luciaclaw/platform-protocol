@@ -1057,10 +1057,21 @@ describe('Schedules schema', () => {
           {
             id: 'sched_001',
             name: 'Morning briefing',
+            scheduleType: 'cron',
             cronExpression: '0 8 * * *',
             timezone: 'America/New_York',
             prompt: 'Morning briefing please',
             status: 'active',
+            executionMode: 'main',
+            delivery: null,
+            model: null,
+            atTime: null,
+            intervalMs: null,
+            deleteAfterRun: false,
+            maxRetries: 0,
+            retryBackoffMs: 30000,
+            retryCount: 0,
+            lastError: null,
             conversationId: 'conv_001',
             createdAt: Date.now() - 86400000,
             updatedAt: Date.now(),
@@ -1083,10 +1094,21 @@ describe('Schedules schema', () => {
           {
             id: 'sched_002',
             name: 'New schedule',
+            scheduleType: 'cron',
             cronExpression: '*/30 * * * *',
             timezone: 'UTC',
             prompt: 'Check emails',
             status: 'paused',
+            executionMode: 'main',
+            delivery: null,
+            model: null,
+            atTime: null,
+            intervalMs: null,
+            deleteAfterRun: false,
+            maxRetries: 0,
+            retryBackoffMs: 30000,
+            retryCount: 0,
+            lastError: null,
             conversationId: null,
             createdAt: Date.now(),
             updatedAt: Date.now(),
@@ -1130,18 +1152,20 @@ describe('Schedules schema', () => {
     expect(validateSchedules(msg)).toBe(false);
   });
 
-  it('rejects schedule.create without required cronExpression', () => {
+  it('allows schedule.create without cronExpression for at-type schedules', () => {
     const msg = {
       id: uuid(),
       type: 'schedule.create',
       timestamp: Date.now(),
       payload: {
-        name: 'Test',
+        name: 'Reminder',
+        scheduleType: 'at',
         timezone: 'UTC',
-        prompt: 'Do something',
+        prompt: 'Remind me about the meeting',
+        atTime: Date.now() + 1200000,
       },
     };
-    expect(validateSchedules(msg)).toBe(false);
+    expect(validateSchedules(msg)).toBe(true);
   });
 
   it('rejects schedule.create without required timezone', () => {

@@ -2,27 +2,65 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://luciaclaw.com/schemas/schedules.json",
   "title": "Schedule Messages",
-  "description": "Scheduled task management schemas for cron-based automation",
+  "description": "Scheduled task management schemas supporting cron, one-shot (at), and interval automation",
   "definitions": {
     "scheduleStatus": {
       "type": "string",
       "enum": ["active", "paused"]
+    },
+    "scheduleType": {
+      "type": "string",
+      "enum": ["cron", "at", "interval"]
+    },
+    "executionMode": {
+      "type": "string",
+      "enum": ["main", "isolated"]
+    },
+    "deliveryMode": {
+      "type": "string",
+      "enum": ["announce", "silent", "none"]
     },
     "cronExpression": {
       "type": "string",
       "pattern": "^(\\S+\\s+){4}\\S+$",
       "description": "5-field cron expression (minute hour dom month dow)"
     },
+    "deliveryConfig": {
+      "type": "object",
+      "required": ["mode"],
+      "properties": {
+        "mode": { "$ref": "#/definitions/deliveryMode" },
+        "channel": { "type": "string", "minLength": 1 },
+        "target": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
     "scheduleInfo": {
       "type": "object",
-      "required": ["id", "name", "cronExpression", "timezone", "prompt", "status", "createdAt", "updatedAt"],
+      "required": ["id", "name", "scheduleType", "timezone", "prompt", "status", "executionMode", "deleteAfterRun", "maxRetries", "retryBackoffMs", "retryCount", "createdAt", "updatedAt"],
       "properties": {
         "id": { "type": "string", "minLength": 1 },
         "name": { "type": "string", "minLength": 1 },
-        "cronExpression": { "$ref": "#/definitions/cronExpression" },
+        "scheduleType": { "$ref": "#/definitions/scheduleType" },
+        "cronExpression": { "type": ["string", "null"] },
         "timezone": { "type": "string", "minLength": 1 },
         "prompt": { "type": "string", "minLength": 1 },
         "status": { "$ref": "#/definitions/scheduleStatus" },
+        "executionMode": { "$ref": "#/definitions/executionMode" },
+        "delivery": {
+          "oneOf": [
+            { "$ref": "#/definitions/deliveryConfig" },
+            { "type": "null" }
+          ]
+        },
+        "model": { "type": ["string", "null"] },
+        "atTime": { "type": ["number", "null"] },
+        "intervalMs": { "type": ["number", "null"] },
+        "deleteAfterRun": { "type": "boolean" },
+        "maxRetries": { "type": "number", "minimum": 0 },
+        "retryBackoffMs": { "type": "number", "minimum": 0 },
+        "retryCount": { "type": "number", "minimum": 0 },
+        "lastError": { "type": ["string", "null"] },
         "conversationId": { "type": ["string", "null"] },
         "createdAt": { "type": "number" },
         "updatedAt": { "type": "number" },
@@ -44,12 +82,22 @@
         "timestamp": { "type": "number" },
         "payload": {
           "type": "object",
-          "required": ["name", "cronExpression", "timezone", "prompt"],
+          "required": ["name", "timezone", "prompt"],
           "properties": {
             "name": { "type": "string", "minLength": 1 },
+            "scheduleType": { "$ref": "#/definitions/scheduleType" },
             "cronExpression": { "$ref": "#/definitions/cronExpression" },
             "timezone": { "type": "string", "minLength": 1 },
-            "prompt": { "type": "string", "minLength": 1 }
+            "prompt": { "type": "string", "minLength": 1 },
+            "executionMode": { "$ref": "#/definitions/executionMode" },
+            "delivery": { "$ref": "#/definitions/deliveryConfig" },
+            "model": { "type": "string", "minLength": 1 },
+            "atTime": { "type": "number" },
+            "atDuration": { "type": "string", "pattern": "^\\d+[smhd]$" },
+            "intervalMs": { "type": "number", "minimum": 1000 },
+            "deleteAfterRun": { "type": "boolean" },
+            "maxRetries": { "type": "number", "minimum": 0 },
+            "retryBackoffMs": { "type": "number", "minimum": 0 }
           },
           "additionalProperties": false
         }
@@ -74,7 +122,22 @@
             "cronExpression": { "$ref": "#/definitions/cronExpression" },
             "timezone": { "type": "string", "minLength": 1 },
             "prompt": { "type": "string", "minLength": 1 },
-            "status": { "$ref": "#/definitions/scheduleStatus" }
+            "status": { "$ref": "#/definitions/scheduleStatus" },
+            "executionMode": { "$ref": "#/definitions/executionMode" },
+            "delivery": {
+              "oneOf": [
+                { "$ref": "#/definitions/deliveryConfig" },
+                { "type": "null" }
+              ]
+            },
+            "model": {
+              "oneOf": [
+                { "type": "string", "minLength": 1 },
+                { "type": "null" }
+              ]
+            },
+            "maxRetries": { "type": "number", "minimum": 0 },
+            "retryBackoffMs": { "type": "number", "minimum": 0 }
           },
           "additionalProperties": false
         }
@@ -161,7 +224,8 @@
             "prompt": { "type": "string", "minLength": 1 },
             "responseContent": { "type": "string" },
             "conversationId": { "type": "string", "minLength": 1 },
-            "executedAt": { "type": "number" }
+            "executedAt": { "type": "number" },
+            "deliveryChannel": { "type": "string" }
           },
           "additionalProperties": false
         }

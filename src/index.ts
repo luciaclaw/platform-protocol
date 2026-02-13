@@ -113,6 +113,10 @@ export type {
 // Schedules
 export type {
   ScheduleStatus,
+  ScheduleType,
+  ExecutionMode,
+  DeliveryMode,
+  DeliveryConfig,
   ScheduleInfo,
   ScheduleCreatePayload,
   ScheduleCreateMessage,
@@ -138,6 +142,7 @@ export type {
   ToolCallStep,
   LlmInferenceStep,
   DelayStep,
+  AgentTurnStep,
   WorkflowStep,
   WorkflowInfo,
   WorkflowStepExecutionInfo,
