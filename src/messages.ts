@@ -52,6 +52,10 @@ export type MessageType =
   // Models
   | 'models.list'
   | 'models.response'
+  // Usage tracking
+  | 'usage.list'
+  | 'usage.set_limits'
+  | 'usage.response'
   // Workflows
   | 'workflow.create'
   | 'workflow.update'

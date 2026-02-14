@@ -200,6 +200,18 @@ export type {
   ModelsResponseMessage,
 } from './models.js';
 
+// Usage tracking
+export type {
+  ModelUsage,
+  UsageSummary,
+  UsageListPayload,
+  UsageListMessage,
+  UsageSetLimitsPayload,
+  UsageSetLimitsMessage,
+  UsageResponsePayload,
+  UsageResponseMessage,
+} from './usage.js';
+
 // Attestation
 export type {
   TdxAttestation,
