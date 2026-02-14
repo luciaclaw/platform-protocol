@@ -30,6 +30,8 @@ export interface ChatMessage {
     toolCalls?: ToolCallPayload[];
     /** File attachments (user only) */
     attachments?: Attachment[];
+    /** Reasoning steps from reasoning models (e.g. Kimi K2.5) */
+    reasoningContent?: string;
     /** Unix timestamp in milliseconds */
     timestamp: number;
 }
@@ -55,6 +57,8 @@ export interface ChatResponsePayload {
     toolCalls?: ToolCallPayload[];
     /** Model ID that generated this response */
     model?: string;
+    /** Reasoning steps from reasoning models (e.g. Kimi K2.5) */
+    reasoningContent?: string;
 }
 export type ChatResponseMessage = MessageEnvelope<ChatResponsePayload> & {
     type: 'chat.response';
@@ -79,6 +83,8 @@ export interface ChatStreamEndPayload {
     content: string;
     /** Tool calls included in the final response (if any) */
     toolCalls?: ToolCallPayload[];
+    /** Reasoning steps from reasoning models (e.g. Kimi K2.5) */
+    reasoningContent?: string;
 }
 export type ChatStreamEndMessage = MessageEnvelope<ChatStreamEndPayload> & {
     type: 'chat.stream.end';

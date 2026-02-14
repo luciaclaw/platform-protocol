@@ -8,7 +8,7 @@ import type { MessageEnvelope } from './messages.js';
 export type WorkflowStatus = 'active' | 'archived';
 export type WorkflowExecutionStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 export type WorkflowStepStatus = 'pending' | 'running' | 'completed' | 'failed' | 'skipped';
-export type WorkflowStepType = 'tool_call' | 'llm_inference' | 'delay';
+export type WorkflowStepType = 'tool_call' | 'llm_inference' | 'delay' | 'agent_turn';
 export type WorkflowTrigger = 'manual' | 'schedule' | 'tool';
 interface WorkflowStepBase {
     /** Unique step ID within the workflow */
@@ -43,7 +43,18 @@ export interface DelayStep extends WorkflowStepBase {
     /** Wait duration in milliseconds */
     durationMs: number;
 }
-export type WorkflowStep = ToolCallStep | LlmInferenceStep | DelayStep;
+export interface AgentTurnStep extends WorkflowStepBase {
+    type: 'agent_turn';
+    /** Goal prompt for the sub-agent — supports {{}} templates */
+    prompt: string;
+    /** Optional model override */
+    model?: string;
+    /** Tool name patterns the sub-agent may use (e.g. ['gmail.*', 'web.search']). Empty = all tools. */
+    allowedTools?: string[];
+    /** Max inference turns before forcing stop (default 5) */
+    maxTurns?: number;
+}
+export type WorkflowStep = ToolCallStep | LlmInferenceStep | DelayStep | AgentTurnStep;
 export interface WorkflowInfo {
     id: string;
     name: string;
