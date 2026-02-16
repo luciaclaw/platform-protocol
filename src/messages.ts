@@ -69,6 +69,10 @@ export type MessageType =
   | 'memory.search'
   | 'memory.delete'
   | 'memory.response'
+  | 'memory.export'
+  | 'memory.export.response'
+  | 'memory.import'
+  | 'memory.import.response'
   // Preferences
   | 'preferences.set'
   | 'preferences.list'
